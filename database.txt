@@ -1,0 +1,51 @@
+# database file that holds payments information
+#
+# 1: type of payment (directDebit, standingOrder, cardPayment, income)
+# 2: is the payment active
+# 3: description of the payment
+# 4: amount of the payment
+# 5: day of the payment
+# 6: how many payments is intended (0=indefinite, 1=one-off, x=number of payments)
+# 7: if not income, count of how many payments has gone since the first payment
+# 8: frequency: how often is the payment processed (1=weekly, 2=monthly, 4=four-weekly)
+# 9: lastPaid: the date of the last payment
+# ----------------------------------------
+# Lista testowa, do usunięcia
+# --type       active?       description        amount      day    count    toll    freq    last paid
+directDebit,    True  ,Opłata za mieszkanie    ,104.42     ,24     ,0      ,1      ,4      ,24/05/2018
+directDebit,    True  ,Woda                    ,57.76      ,1      ,0      ,1      ,1      ,24/05/2018
+cardPayment,    True  ,Prąd i gaz              ,84.62      ,24     ,0      ,1      ,2      ,24/05/2018
+income,         True  ,Jakaś tam wpłata        ,84.62      ,24     ,0      ,1      ,2      ,24/05/2018
+# ----------------------------------------
+# Oryginalna lista płatności. Do uruchomienia później
+#directDebit,True,Opłata za mieszkanie,404.42,24,0,1,2,24/05/2018
+#directDebit,True,Woda,57.76,24,0,1,2,24/05/2018
+#directDebit,True,Prąd i gaz,84.62,24,0,1,2,24/05/2018
+#directDebit,True,Ubezpieczenie lodówki,5.49,24,0,1,2,24/05/2018
+#directDebit,True,TV Licence,18.37,1,0,1,2,24/05/2018
+#directDebit,True,Car Tax,32.80,1,0,1,2,24/05/2018
+#cardPayment,True,Step Change,146,1,0,1,2,24/05/2018
+#directDebit,True,Recepta,10.40,24,0,1,2,24/05/2018
+#directDebit,True,Ubezpieczenie samochodów,101.47,24,0,1,2,24/05/2018
+#directDebit,True,BT Internet,53.74,24,0,1,2,24/05/2018
+#directDebit,True,Capital One,37,24,0,1,2,24/05/2018
+#cardPayment,True,Rata za Forda,390.60,24,1,2,2,24/05/2018
+#directDebit,True,Ubezpieczenie domu,10.68,24,0,1,2,24/05/2018
+#directDebit,True,Rata za lodówkę,9.71,24,0,1,2,24/05/2018
+#directDebit,True,SpecSavers,13,24,0,1,2,24/05/2018
+#directDebit,True,Komórki,119,24,0,1,2,24/05/2018
+#cardPayment,True,Rata za Opla,30,24,0,1,2,24/05/2018
+#directDebit,True,Tablet Antka,12,24,0,1,2,24/05/2018
+#directDebit,True,Hive - żarówki,10,24,0,1,2,24/05/2018
+#directDebit,True,Metlife - wypadkowe,20,24,0,1,2,24/05/2018
+#directDebit,True,Metlife - Life Insurance,44,24,1,1,2,24/05/2018
+#directDebit,True,Virgin Media,6,24,1,1,2,24/05/2018
+#cardPayment,True,Netflix,7.99,24,0,1,2,24/05/2018
+#income,True,Wypłata Michałą,1068.90,24,0,1,2,24/05/2018
+#income,True,Wypłata Moniki,1089,25,0,1,2,24/05/2018
+## wydatki jednorazowe na ten miesiac - do skasowania
+#cardPayment,True,Airport Car Park,99.78,24,1,0,2,24/05/2018
+#cardPayment,True,Bilety na samolot,263.11,24,1,0,2,24/05/2018
+#cardPayment,True,Paliwo,100,24,1,0,2,24/05/2018
+#cardPayment,True,Mandat,30,24,1,0,2,24/05/2018
+#directDebit,True,eBay,9,24,1,0,2,24/05/2018
