@@ -1,14 +1,16 @@
-from datetime import datetime
+# from datetime import datetime
 import database as db
+import newgui as gui
+
 # import payments as p
 # from decimal import *  # decimal numbers
 # getcontext().prec = 10  # setting the decimals to two numbers, as in payments
 
-paymentDay = 24  # do skasowania
-PAYDAY = 24
-
-today = datetime.now()
-payment = today.replace(day=paymentDay)
+# paymentDay = 24  # do skasowania
+# PAYDAY = 24
+#
+# today = datetime.now()
+# payment = today.replace(day=paymentDay)
 
 db.read_data()
 
@@ -22,3 +24,9 @@ full_outcome = db.calculate_total("directDebit") + db.calculate_total("standingO
 
 print("Wydatki całkowite: £" + str(full_outcome))
 print("Przychód - wydatki: £" + str(db.calculate_total("income") - full_outcome))
+
+# ------ Starting the GUI adn the main loop
+# gui.cal = gui.PaymentsCalendar()
+gui.root = gui.Tk()
+gui.myapp = gui.PaymentsGUI(gui.root)
+gui.root.mainloop()
