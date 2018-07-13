@@ -37,12 +37,8 @@ if start_date.isoweekday() == 6 or start_date.isoweekday() == 7:
 # value: list of Payment objects that are to be paid on that date
 calendar_dict = dict()
 
-# output is the output list used for generating the month's summary
-# note: for some reason I cannot move it inside getMonth() method as it shows error...
-output = []
-
-print("Start date: " + str(start_date))  # testing
-print("End date: " + str(end_date))  # testing
+# print("Start date: " + str(start_date))  # testing
+# print("End date: " + str(end_date))  # testing
 
 
 def read_data():
@@ -81,8 +77,6 @@ def read_data():
 
 			payment_date = date(start_date.year, payment_month, payment_day)
 
-			# payment = insert_payment_2(payment_date, payment_day, values)
-
 			insert_payment(payment_day, payment_date, values)
 
 			# calendar_dict[calendar_key] = payment
@@ -112,6 +106,21 @@ def insert_payment(pd, p_d, v):
 	:param p_d: payment_date
 	:param v: values
 	"""
+
+	# if the payment comes on Saturday or Sunday it needs to be moved to the following Monday
+	# print(p_d.strftime("%a"), v[2])
+	if p_d.strftime("%a") == "Sat":
+		if v[0] != "income":
+			p_d += timedelta(days=2)
+		else:
+			p_d += timedelta(days=-1)
+
+	elif p_d.strftime("%a") == "Sun":
+		if v[0] != "income":
+			p_d += timedelta(days=1)
+		else:
+			p_d += timedelta(days=-2)
+
 	payment = Payment(  # creating the Payment object
 		check_active(v[1]),  # is the payment active
 		v[2],  # description
@@ -177,50 +186,55 @@ def calculate_total(kind):
 	return total
 
 
-def get_month(dd, cp, so):
-	"""
-	iterate through the payments_dict dictionary
-	and generates output list with all payments for the current financial period
-	:return: output: list with all payments for financial period
-	"""
-	print(dd)
-
-	# setting up the financial period's calendar
-	week = 1
-	period = timedelta(days=1)
-	fpd = start_date  # financial period day
-
-	# populating the payments
-	while fpd <= end_date:  # outer loop to go through each week
-		while True:  # inner loop to go through each day
-			output.append("Week {} - {}, {} {}".format(
-				str(week), fpd.strftime("%a"), str(fpd.day), str(fpd.strftime("%B"))
-			))
-
-			key_date = fpd.strftime("%b-%d")  # setting the key value to check against dictionary
-			if key_date in calendar_dict:  # are there any payments that day?
-				for item in calendar_dict[key_date]:
-					output.append("Week {} -      {}: £{}".format(
-						str(week),
-						item.description.rstrip(),
-						str(item.amount))
-					)
-
-			if fpd.strftime("%a") == "Sun" or fpd == end_date:
-				break
-			else:
-				fpd += period
-
-		# end of inner loop
-
-		fpd += period
-		week += 1
-		output.append("--------")
-	# end of outer loop
-
-	return output
-
-
+# def get_month():
+# 	"""
+# 	iterate through the payments_dict dictionary
+# 	and generates output list with all payments for the current financial period
+# 	:return: output: list with all payments for financial period
+# 	"""
+# 	# output is the output list used for generating the month's
+# 	output = []
+# 	output1 = [[] for _ in range(6)]
+# 	print(output1)
+#
+# 	# setting up the financial period's calendar
+# 	week = 1
+# 	period = timedelta(days=1)
+# 	fpd = start_date  # financial period day
+#
+# 	# populating the payments
+# 	while fpd <= end_date:  # outer loop to go through each week
+# 		while True:  # inner loop to go through each day
+# 			output.append("Week {} - {}, {} {}".format(
+# 				str(week), fpd.strftime("%a"), str(fpd.day), str(fpd.strftime("%B"))
+# 			))
+#
+# 			key_date = fpd.strftime("%b-%d")  # setting the key value to check against dictionary
+# 			if key_date in calendar_dict:  # are there any payments that day?
+# 				for item in calendar_dict[key_date]:
+# 					output.append("Week {} -      {}: £{}".format(
+# 						str(week),
+# 						item.description.rstrip(),
+# 						str(item.amount))
+# 					)
+# 					output1[week - 1].append([item, 0])
+#
+# 			if fpd.strftime("%a") == "Sun" or fpd == end_date:
+# 				break
+# 			else:
+# 				fpd += period
+#
+# 		# end of inner loop
+#
+# 		fpd += period
+# 		week += 1
+# 		output.append("--------")
+# 	# end of outer loop
+# 	print(output1)
+#
+# 	return calendar_dict
+#
+#
 def get_start_date():  # getter for start_date
 	return start_date
 
@@ -249,12 +263,12 @@ class Payment(object):
 		# self.isOutcome = isOutcome
 		self.is_active = is_active
 		self.payment_day = payment_day
-		self.amount = amount
-		self.description = description
+		self.amount = Decimal(amount)
+		self.description = description.rstrip()
 		self.count = count
 		self.toll = toll
 		self.frequency = frequency
 		self.last_paid = last_paid
 
 	def __repr__(self):
-		return "\"{}\", paid on {}, for £{}".format(self.description, self.payment_day, self.amount)
+		return "{} na kwotę: £{}".format(self.description, self.amount)
