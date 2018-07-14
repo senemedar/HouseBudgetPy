@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # handling the data from "database.txt"
 # payments details as per database file
 from datetime import date, timedelta, datetime
@@ -44,12 +45,13 @@ calendar_dict = dict()
 def read_data():
 	"""reads the data from file and creates the Payment objects"""
 
-	data = open("database.txt", "r")  # opening the file
+	data = open("database.txt", "r", encoding="UTF-8")  # opening the file
 	for line in data:  # iterating through the database.txt file
 		if line[0] == "#":  # this is comment, so skip it
 			continue
 		else:
 			values = line.split(",")  # split line into values
+
 			for i in range(len(values)):
 				values[i].strip()  # removing spaces from values
 
