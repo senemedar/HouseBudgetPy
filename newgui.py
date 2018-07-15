@@ -7,16 +7,26 @@ import database as db
 
 
 class PaymentsGUI:
-	status_window = None
+	# status_window = None
 
 	def __init__(self, parent):
 
 		# setting up the locale
 		# all the texts on buttons, etc. goes here
-		self.button_labels_en = ["Calculate", "Quit"]
-		self.button_labels_pl = ["Przelicz", "Wyjdź"]
-		self.checkbox_labels_en = ["Show empty days", "Show status window"]
-		self.checkbox_labels_pl = ["Pokaż puste dni", "Pokaż okno statusu"]
+		self.button_labels_en = ["Calculate", "Quit", "Clear selection"]
+		self.button_labels_pl = ["Przelicz", "Wyjdź", "Wyczyść zaznaczenie"]
+
+		self.checkbox_labels_en = [
+			"Show empty days",
+			"Show status window",
+			"Automatic\nselection clearing"
+		]
+		self.checkbox_labels_pl = [
+			"Pokaż puste dni",
+			"Pokaż okno statusu",
+			"Automatyczne\nczyszczenie wyboru"
+		]
+
 		self.status_window_text_en = [
 			"Total income: £",
 			"Direct debit spending: £",
@@ -39,13 +49,18 @@ class PaymentsGUI:
 		self.label_text_pl = ["Płatności za okres rozliczeniowy\nod {} do {}".format(
 			db.get_start_date().strftime("%A, %d of %B"), db.get_end_date().strftime("%A, %d of %B"))]
 
-		# default locale is english (but not for long)
+		self.frame_labels_en = ["Language selection", "Selection Clearing", "Clearing delay"]
+		self.frame_labels_pl = ["Wybór języka", "Czyszczenie wyboru", "Opóźnienie\nczyszczenia"]
+
+		# ###############  default locale is polish
 		self.current_button_labels = self.button_labels_pl
 		self.current_checkbox_labels = self.checkbox_labels_pl
 		self.current_label_text = self.label_text_pl
 		self.current_status_window_text = self.status_window_text_pl
+		self.current_frame_labels = self.frame_labels_pl
 
-		# OTHER VARIABLES
+		# ###############  OTHER VARIABLES
+
 		# selection memory is a dictionary
 		# key is the listbox object
 		# value is listbox selection
@@ -60,43 +75,44 @@ class PaymentsGUI:
 		# weekX = [[date string or Payment object, line position in listbox for that week], [...], ...
 		self.output = [[] for _ in range(6)]
 
-		# determining the window size
+		# ###############  determining the window size
 		self.myParent = parent
 		size_x = parent.winfo_screenwidth() - 400  # leaving some breathing space
 		size_y = parent.winfo_screenheight() - 150
-		if size_x < 800:
-			size_x = 800
+		if size_x < 1000:
+			size_x = 1000
 		if size_y < 600:
 			size_y = 600
 
 		window_size = str(size_x) + "x" + str(size_y) + "+50+20"
 
 		self.myParent.geometry(window_size)  # window size
+		# self.myParent.geometry("1000x600")  # window size
 		self.myParent.title("House Budget")  # window title
 
-		# setting the variables to control from view buttons
-		self.check_box_dd = IntVar(value=1)
-		self.check_box_so = IntVar(value=1)
-		self.check_box_cp = IntVar(value=1)
-		self.check_box_sw = IntVar(value=1)
-		self.check_box_sed = IntVar(value=1)
-		self.dialog_button_loc = IntVar(value=2)
+		# setting the widgets variables
+		self.check_box_dd = IntVar(value=1)  # checkbox direct debit
+		self.check_box_so = IntVar(value=1)  # checkbox standing order
+		self.check_box_cp = IntVar(value=1)  # checkbox card payment
+		self.check_box_sed = IntVar(value=1)  # checkbox empty days
+		# self.check_box_sw = IntVar(value=1)  # checkbox status window - not currently used
+		self.dialog_button_loc = IntVar(value=2)  # radio button for locale
+		self.check_box_selection_timeout = IntVar(value=1)  # checkbox for selection timeout
+		self.selection_timeout_val = IntVar(value=6)  # selection timeout value
 
-		# The topmost frame is called myContainer1
+		# ###############  The topmost frame is called myContainer1  ###############
 		self.myContainer1 = Frame(self.myParent)
 		self.myContainer1.pack(expand=YES, fill=BOTH, padx=5, pady=5)
 		self.myContainer1.columnconfigure(0, weight=2, minsize=20)
 		self.myContainer1.columnconfigure(1, weight=2, minsize=20)
 		# self.myContainer1.columnconfigure(2, weight=2, minsize=20)
-		# self.myContainer1.columnconfigure(3, minsize=30)
+		self.myContainer1.columnconfigure(3)
 		self.myContainer1.rowconfigure(0)
 		self.myContainer1.rowconfigure(1, weight=1)
 		self.myContainer1.rowconfigure(2, weight=1)
 		self.myContainer1.rowconfigure(3, weight=1)
 
-		# message = "Payments for the spending period\nfrom {} to {}".format(
-		# 	db.get_start_date().strftime("%A, %d of %B"), db.get_end_date().strftime("%A, %d of %B")
-		# )
+		# ############### financial period label
 		self.financial_period_label = ttk.Label(
 			self.myContainer1,
 			text=self.current_label_text[0],
@@ -105,8 +121,11 @@ class PaymentsGUI:
 		)
 		self.financial_period_label.grid(columnspan=2)
 
+		# ############### The main title ###############
 		self.title_frame = Frame(self.myContainer1)
 		self.title_frame.grid(row=0, column=2, columnspan=2, pady=(5, 10))
+
+		# ############### Home budget
 		self.title_label = ttk.Label(
 			self.title_frame,
 			text="Budżet domowy",
@@ -114,6 +133,8 @@ class PaymentsGUI:
 			font=("Arial", 30, "italic", "bold")
 		)
 		self.title_label.pack(side=LEFT)
+
+		# ############### version
 		self.version_label = ttk.Label(
 			self.title_frame,
 			text="v0.5",
@@ -121,19 +142,14 @@ class PaymentsGUI:
 		)
 		self.version_label.pack(side=LEFT, anchor=S)
 
-		# Frame for the right-hand-side buttons
-		self.control_frame = Frame(self.myContainer1)
-		self.control_frame.grid(column=3, rowspan=5, sticky=N+S, padx=10)
-		# self.control_frame.grid_propagate(0)
-
-		# check-buttons frame at the bottom
+		# ###############  check-buttons frame at the bottom
 		self.cbuttons_frame = Frame(self.myContainer1)
-		self.cbuttons_frame.grid(row=4, columnspan=2, sticky=W)
+		self.cbuttons_frame.grid(row=4, columnspan=2, sticky=E+W)
 
+		# ###############  preparing the list boxes grid  ###############
 		lsbox_column = 0
 		lsbox_row = 1
 
-		# preparing the list boxes grid
 		for w in range(6):
 			the_listbox = Listbox(
 				self.myContainer1,
@@ -158,7 +174,7 @@ class PaymentsGUI:
 		# self.list_update()  # filling the list for the first time
 		self.list2_update()  # filling the list for the first time
 
-		# the status window
+		# ###############  the status window  ###############
 		self.status_window = Frame(
 				self.myContainer1,
 				# bg="#CCC",
@@ -169,7 +185,7 @@ class PaymentsGUI:
 		self.status_window.grid(column=2, row=1, rowspan=3, ipadx=5, ipady=5, sticky=N+S)
 		self.status_window.grid_propagate(0)
 
-		# the view control checkbutton
+		# ###############  the view control check buttons
 		self.button_dd = ttk.Checkbutton(
 							self.cbuttons_frame,  # show Direct Debits checkbox
 							variable=self.check_box_dd,
@@ -203,7 +219,12 @@ class PaymentsGUI:
 		self.button_cp.grid(row=0, column=2, sticky=W+N)
 		self.button_sed.grid(row=1, column=0, sticky=W+N)
 
-		# Calculate button
+		# ###############  Frame for the right-hand-side buttons  ###############
+		self.control_frame = Frame(self.myContainer1, width=250)
+		self.control_frame.grid(column=3, row=1, rowspan=5, sticky=N+S, padx=10)
+		self.control_frame.grid_propagate(0)
+
+		# ###############  Calculate button
 		self.button_get_selection = ttk.Button(
 							self.control_frame,
 							text=self.current_button_labels[0],
@@ -212,7 +233,7 @@ class PaymentsGUI:
 		# self.button_get_selection.grid(row=0, column=2, sticky=W+N, padx=7, pady=5)
 		self.button_get_selection.pack(anchor=N+W)
 
-		# QUIT button
+		# ############### QUIT button
 		s = ttk.Style()
 		s.configure("my.TButton", font=("Tahoma", 11), foreground="#990000")
 		self.button_quit = ttk.Button(
@@ -224,45 +245,84 @@ class PaymentsGUI:
 		# self.button_quit.grid(row=0, column=2, sticky=S, padx=20, pady=2)
 		self.button_quit.pack(side=BOTTOM, pady=(10, 18), padx=30, ipady=8)
 
-		# Language selection Radio Buttons
+		# ###############  Language selection  ###############
+		self.language_selection_frame = LabelFrame(
+							self.control_frame,
+							labelanchor=NW,
+							text=self.current_frame_labels[0],
+							relief=GROOVE,
+							borderwidth=3
+		)
+		self.language_selection_frame.pack(side=BOTTOM, anchor=W, fill=X)
+
+		# ###############  Language selection Radio Buttons  ###############
 		self.button_locale_eng = ttk.Radiobutton(
-							self.control_frame,  # locale selection radio buttons
+							self.language_selection_frame,  # locale selection radio buttons
 							variable=self.dialog_button_loc,
 							value=1,
 							text="English",
 							command=self.locale_toggle
 		)
 		self.button_locale_pl = ttk.Radiobutton(
-							self.control_frame,  # locale selection radio buttons
+							self.language_selection_frame,  # locale selection radio buttons
 							variable=self.dialog_button_loc,
 							value=2,
 							text="Polski",
 							command=self.locale_toggle
 		)
-		self.show_status_window = ttk.Checkbutton(
-							self.control_frame,  # locale selection radio buttons
-							variable=self.check_box_sw,
-							text=self.current_checkbox_labels[1],
-							command=self.status_window_toggle
+		self.button_locale_pl.pack(side=LEFT, padx=5, pady=5)
+		self.button_locale_eng.pack(side=RIGHT, padx=5, pady=5)
+
+		# ###############  Selection clearing timeout frame  ###############
+		self.selection_timeout_frame = LabelFrame(
+							self.control_frame,
+							labelanchor=NW,
+							text=self.current_frame_labels[1],
+							relief=GROOVE,
+							borderwidth=3,
 		)
-		self.button_locale_eng.pack(side=BOTTOM, anchor=W)
-		self.button_locale_pl.pack(side=BOTTOM, anchor=W)
-		# self.show_status_window.pack(side=BOTTOM, anchor=W)
+		self.selection_timeout_frame.pack(side=BOTTOM, anchor=W, fill=X, pady=10, ipady=5)
+		self.selection_timeout_frame.columnconfigure(0, minsize=85)
+		self.selection_timeout_frame.columnconfigure(1, minsize=40)
+		self.selection_timeout_frame.columnconfigure(2, minsize=10)
+		self.selection_timeout_frame.rowconfigure(0, minsize=40)
+		self.selection_timeout_frame.rowconfigure(1, minsize=40)
 
-	# updating the view on the list ???
-	# def list_update(self):
-	# 	""" Updates the information displayed inside the Listbox"""
-	#
-	# 	lst = self.listbox_list[5]  # get the lst object
-	# 	lst.delete(0, END)  # clearing lst before repopulating
-	#
-	# 	lst.insert(0, "Direct Debit: " + str(self.check_box_dd.get()))
-	# 	lst.insert(1, "Standing Order: " + str(self.check_box_so.get()))
-	# 	lst.insert(2, "Card Payment: " + str(self.check_box_cp.get()))
-	# 	lst.insert(3, db.payments["directDebit"][0])
-		# lst.grid()
+		# ###############  check box for selection timeout
+		self.button_selection_timeout = ttk.Checkbutton(
+							self.selection_timeout_frame,
+							variable=self.check_box_selection_timeout,
+							text=self.current_checkbox_labels[2],
+							command=self.selection_timeout_change
+		)
+		self.button_selection_timeout.grid(row=0, column=0, columnspan=3, sticky=W)
 
-		# summary of payments
+		# ###############  selection timeout label
+		self.selection_timeout_label = Label(self.selection_timeout_frame, text=self.current_frame_labels[2])
+		self.selection_timeout_label.grid(row=1, column=0, sticky=E)
+		Label(self.selection_timeout_frame, text="s").grid(row=1, column=2, sticky=E)
+
+		# ###############  entry field for selection timeout value
+		self.input_selection_timeout = ttk.Entry(
+							self.selection_timeout_frame,
+							width=5,
+							textvariable=self.selection_timeout_val
+		)
+		self.input_selection_timeout.grid(row=1, column=1, sticky=W)
+
+		# ###############  clear selection button
+		s.configure("selection.TButton")
+		self.clear_selection_button = ttk.Button(
+							self.selection_timeout_frame,
+							text=self.current_button_labels[2],
+							command=self.clear_selection,
+							width=20,
+							style="selection.TButton",
+							state=DISABLED
+		)
+		self.clear_selection_button.grid(row=3, column=0, columnspan=3, sticky=W, padx=7)
+
+		# ###############  summary of payments
 		self.show_summary()
 
 	def list2_update(self):
@@ -335,34 +395,46 @@ class PaymentsGUI:
 			self.current_checkbox_labels = self.checkbox_labels_en
 			self.current_label_text = self.label_text_en
 			self.current_status_window_text = self.status_window_text_en
+			self.current_frame_labels = self.frame_labels_en
+
 		else:
 			self.current_button_labels = self.button_labels_pl
 			self.current_checkbox_labels = self.checkbox_labels_pl
 			self.current_label_text = self.label_text_pl
 			self.current_status_window_text = self.status_window_text_pl
+			self.current_frame_labels = self.frame_labels_pl
 
 		self.button_get_selection.configure(text=self.current_button_labels[0])
 		self.button_quit.configure(text=self.current_button_labels[1])
 		self.button_sed.configure(text=self.current_checkbox_labels[0])
+		self.button_selection_timeout.configure(text=self.current_checkbox_labels[2])
 		self.financial_period_label.configure(text=self.current_label_text[0])
+		self.language_selection_frame.configure(text=self.current_frame_labels[0])
+		self.selection_timeout_frame.configure(text=self.current_frame_labels[1])
+		self.selection_timeout_label.configure(text=self.current_frame_labels[2])
+		self.clear_selection_button.configure(text=self.current_button_labels[2])
+
 		self.show_summary()
 
-	def status_window_toggle(self):
-		if self.check_box_sw.get():
-			self.status_window.grid()
-		else:
-			self.status_window.grid_remove()
+	# def status_window_toggle(self):
+	# 	if self.check_box_sw.get():
+	# 		self.status_window.grid()
+	# 	else:
+	# 		self.status_window.grid_remove()
 
 	def store_selection(self, event):
 		# self.selection_memory = []  # clear the current state of variable if it's the same widget
 
 		# first item in the list is the list itself
 		self.selection_memory[event.widget] = event.widget.curselection()
-		event.widget.after(5000, lambda: event.widget.selection_clear(0, END))
+
+		# ############### setting the timeout for selection, if the checkbox is ticked
+		if self.check_box_selection_timeout.get() == 1:
+			# event.widget.after(self.selection_timeout_val.get() * 1000, lambda: event.widget.selection_clear(0, END))
+			event.widget.after(self.selection_timeout_val.get() * 1000, lambda: self.clear_selection(event.widget))
 
 	def get_selection(self):
 		""" Collects the data selected in the Listbox"""
-
 		total = 0  # sum of all selected payments
 		for lst in self.selection_memory.keys():
 			# print(lst)
@@ -373,7 +445,23 @@ class PaymentsGUI:
 				total += payment.amount
 
 		Label(self.status_window, text=str(total)).grid(sticky=W)
-		# lst.selection_clear(0, END)
+
+	def clear_selection(self, widget=None):
+		if widget:
+			widget.selection_clear(0, END)
+			self.selection_memory[widget] = list()
+		else:
+			for lst in self.listbox_list:
+				lst.selection_clear(0, END)
+				self.selection_memory[lst] = list()
+
+	def selection_timeout_change(self):
+		if self.check_box_selection_timeout.get() == 0:
+			self.input_selection_timeout.configure(state=DISABLED)
+			self.clear_selection_button.configure(state=ACTIVE)
+		else:
+			self.input_selection_timeout.configure(state=ACTIVE)
+			self.clear_selection_button.configure(state=DISABLED)
 
 	def show_summary(self):
 		# self.status_window.insert(0, "Całkowity przychód: £" + str(db.calculate_total("income")))
